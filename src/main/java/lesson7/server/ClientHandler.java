@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.Timestamp;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -39,7 +40,13 @@ public class ClientHandler {
     }
 
     private void authentication() throws IOException {
+        Timestamp authStartTimestamp = new Timestamp(System.currentTimeMillis());
         while (true) {
+            Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+            if(currentTimestamp.getTime() - authStartTimestamp.getTime() > 120000) {
+                sendMessage("Authentication time is out. Disconnecting...");
+                closeConnection();
+            }
             String str = in.readUTF();
             if (str.startsWith(Constants.AUTH_COMMAND)) {
                 String[] tokens = str.split("\\s+");
@@ -77,7 +84,7 @@ public class ClientHandler {
                 message = name + " to " + addressee + ": " +
                         message.replace(Constants.PRIVATE_MESSAGE_FLAG + " ", "").
                                 replace(addressee + " ", "");
-                server.sendPrivateMessage(name, addressee, message);
+                server.sendPrivateMessage(this, addressee, message);
                 continue;
             }
             server.broadcastMessage(name + ": " + message);
@@ -89,8 +96,11 @@ public class ClientHandler {
     }
 
     private void closeConnection() {
-        server.unsubscribe(this);
-        server.broadcastMessage(this.name + " disconnected");
+        try {
+            server.unsubscribe(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         try {
             out.close();
         } catch (IOException e) {
