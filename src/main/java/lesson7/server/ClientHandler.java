@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Locale;
 import java.util.Optional;
 
 public class ClientHandler {
@@ -46,9 +47,10 @@ public class ClientHandler {
                 if (nick.isPresent()) {
                     name = nick.get();
                     if (!server.isNickBusy(name)) {
-                        sendMessage(Constants.AUTH_OK + nick);
-                        server.broadcastMsg(nick + " connected");
+                        sendMessage(Constants.AUTH_OK + name);
+                        server.broadcastMessage(name + " connected");
                         server.subscribe(this);
+                        return;
                     } else sendMessage("Name is already using");
                 } else sendMessage("Wrong login/password");
             }
@@ -69,7 +71,16 @@ public class ClientHandler {
             if (message.equals(Constants.END_COMMAND)) {
                 break;
             }
-            server.broadcastMsg(message);
+            if (message.startsWith(Constants.PRIVATE_MESSAGE_FLAG)) {
+                String[] tokens = message.split("\\s+");
+                String addressee = tokens[1];
+                message = name + " to " + addressee + ": " +
+                        message.replace(Constants.PRIVATE_MESSAGE_FLAG + " ", "").
+                                replace(addressee + " ", "");
+                server.sendPrivateMessage(name, addressee, message);
+                continue;
+            }
+            server.broadcastMessage(name + ": " + message);
         }
     }
 
@@ -79,7 +90,7 @@ public class ClientHandler {
 
     private void closeConnection() {
         server.unsubscribe(this);
-        server.broadcastMsg(this.name + " disconnected");
+        server.broadcastMessage(this.name + " disconnected");
         try {
             out.close();
         } catch (IOException e) {

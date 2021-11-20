@@ -31,6 +31,7 @@ public class MyServer {
                 new ClientHandler(this, socket);
             }
         } catch (IOException e) {
+            System.out.println("Server error");
             e.printStackTrace();
         } finally {
             if (authService != null) {
@@ -48,11 +49,18 @@ public class MyServer {
         return false;
     }
 
-    public synchronized void broadcastMsg(String msg) {
-        for (ClientHandler client : clients) {
-            client.sendMessage(msg);
+    public synchronized void broadcastMessage(String message) {
+        clients.forEach(client -> client.sendMessage(message));
+        }
+
+    public synchronized void sendPrivateMessage(String sender, String addressee, String message) {
+        for (ClientHandler client: clients) {
+            if(client.getName().equals(addressee) || client.getName().equals(sender)) {
+                client.sendMessage(message);
+            }
         }
     }
+
 
     public synchronized void unsubscribe(ClientHandler client) {
         clients.remove(client);

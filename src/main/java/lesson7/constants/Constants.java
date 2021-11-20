@@ -17,4 +17,6 @@ public class Constants {
 
     public static final String END_COMMAND = "/end";
 
+    public static final String PRIVATE_MESSAGE_FLAG = "/w";
+
 }

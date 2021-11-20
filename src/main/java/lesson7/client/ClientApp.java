@@ -47,7 +47,7 @@ public class ClientApp extends JFrame {
                         this.login = tokens[3];
                         chatArea.append("Успешно авторизован как " + login + "\n");
                     }
-                    chatArea.append("Server: " + strFromServer + "\n");
+                    chatArea.append(strFromServer + "\n");
                 }
                 chatArea.append("Disconnected");
                 chatArea.setEnabled(false);
@@ -78,16 +78,18 @@ public class ClientApp extends JFrame {
 
 
     public void sendMessage() {
-        if (!msgInputField.getText().trim().isEmpty()) {
-            try {
-                out.writeUTF(msgInputField.getText());
-                msgInputField.setText("");
-                msgInputField.grabFocus();
-            } catch (IOException e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Ошибка отправки сообщения");
-            }
+        if (msgInputField.getText().trim().isEmpty()) {
+            return;
         }
+        try {
+            out.writeUTF(msgInputField.getText());
+            msgInputField.setText("");
+            msgInputField.grabFocus();
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Ошибка отправки сообщения");
+        }
+
     }
 
     public void prepareGUI() {
@@ -116,7 +118,6 @@ public class ClientApp extends JFrame {
         msgInputField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                chatArea.append("You: " + msgInputField.getText() + "\n");
                 sendMessage();
             }
         });
