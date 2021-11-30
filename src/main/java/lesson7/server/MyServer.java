@@ -19,7 +19,7 @@ public class MyServer {
 
     public MyServer() {
         try (ServerSocket server = new ServerSocket(Constants.SERVER_PORT)) {
-            authService = new BaseAuthService();
+            authService = new JdbcAuthService();
             authService.start();
 
             clients = new ArrayList<>();
@@ -65,7 +65,7 @@ public class MyServer {
     }
 
     public synchronized void broadcastClientList() {
-        StringBuilder stringBuilder = new StringBuilder("/clients");
+        StringBuilder stringBuilder = new StringBuilder("/clients ");
         clients.forEach(client -> stringBuilder.append(client.getName()).append(" "));
         broadcastMessage(stringBuilder.toString());
     }
