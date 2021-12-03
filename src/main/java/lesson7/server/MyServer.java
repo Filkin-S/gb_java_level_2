@@ -53,21 +53,33 @@ public class MyServer {
         clients.forEach(client -> client.sendMessage(message));
         }
 
-    public synchronized void sendPrivateMessage(String sender, String addressee, String message) {
+    public synchronized void sendPrivateMessage(ClientHandler sender, String addressee, String message) {
         for (ClientHandler client: clients) {
-            if(client.getName().equals(addressee) || client.getName().equals(sender)) {
+            if(client.getName().equals(addressee)){
                 client.sendMessage(message);
+                sender.sendMessage(message);
+            } else {
+                sender.sendMessage("This person is not in chat: " + addressee);
             }
         }
+    }
+
+    public synchronized void broadcastClientList() {
+        StringBuilder stringBuilder = new StringBuilder("/clients");
+        clients.forEach(client -> stringBuilder.append(client.getName()).append(" "));
+        broadcastMessage(stringBuilder.toString());
     }
 
 
     public synchronized void unsubscribe(ClientHandler client) {
         clients.remove(client);
+        broadcastMessage(client.getName() + " disconnected");
+        broadcastClientList();
     }
 
     public synchronized void subscribe(ClientHandler client) {
         clients.add(client);
+        broadcastClientList();
     }
 
 }
